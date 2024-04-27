@@ -1,3 +1,4 @@
+use reqwest::header::HeaderMap;
 use reqwest::Client as HttpClient;
 use rusty_ytdl as ytdl;
 use songbird::input::{HttpRequest, Input};
@@ -72,7 +73,17 @@ pub async fn play_url(url: &str, client: HttpClient) -> Result<(Metadata, Input)
         choose_thumbnail(data.thumbnails).url,
     );
 
-    let input = HttpRequest::new(client, format.url);
+    let content_length: Option<u64> = match format.content_length {
+        Some(len) => str::parse::<u64>(&len).ok(),
+        None => None,
+    };
+
+    let input = HttpRequest {
+        client,
+        request: format.url,
+        headers: HeaderMap::default(),
+        content_length,
+    };
 
     Ok((metadata, input.into()))
 }
