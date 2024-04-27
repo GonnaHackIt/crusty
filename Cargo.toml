@@ -1,0 +1,33 @@
+[package]
+name = "bot-rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde_json = "1"
+serde = "1"
+dashmap = "5.5.3"
+reqwest = "0.11"
+poise = "0.6"
+rusty_ytdl = "*"
+symphonia = { version = "0.5.2", features=["all"] }
+
+[patch.crates-io.symphonia]
+path = "./symphonia-master/symphonia"
+
+[patch.crates-io.symphonia-core]
+path = "./symphonia-master/symphonia-core"
+
+[dependencies.songbird]
+version = "0.4"
+features = ["serenity", "rustls", "gateway", "driver", "builtin-queue"]
+
+[dependencies.serenity]
+version = "0.12"
+features = ["client", "voice", "rustls_backend", "cache"]
+
+[dependencies.tokio]
+version = "1.0"
+features = ["macros", "rt-multi-thread", "signal"]
