@@ -10,7 +10,9 @@ A simple discord music bot written in Rust.
 - [x] Seeking forward
 - [x] Skipping songs
 - [x] Queue
-- [ ] TODO: Playlist support
+- [x] Playlist support
+- [ ] New platforms support (Spotify, Soundcloud)
+- [ ] Own queue implementation
 
 ## Commands
 
@@ -21,8 +23,7 @@ A simple discord music bot written in Rust.
 
 ## Requirements
 
-The requirements are the same as for [songbird](https://github.com/serenity-rs/songbird/tree/current?tab=readme-ov-file#dependencies),
-except yt-dlp/youtube-dl part.
+The requirements are the same as for [songbird](https://github.com/serenity-rs/songbird/tree/current?tab=readme-ov-file#dependencies). You can skip the yt-dlp part if you don't want to have youtube playlist support.
 
 ## Installation
 
