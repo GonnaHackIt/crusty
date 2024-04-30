@@ -1,4 +1,3 @@
-use super::ytdl::{self, Metadata};
 use super::*;
 use crate::commands::join::join_channel;
 use crate::{HttpClient, HttpKey};
@@ -11,6 +10,7 @@ use songbird::{
     tracks::Track,
     EventContext, TrackEvent,
 };
+use sources::{Metadata, SourceFactory, TrackInfo};
 use std::sync::Arc;
 
 #[poise::command(prefix_command, guild_only, aliases("p"))]
@@ -36,37 +36,44 @@ pub async fn play(ctx: Context<'_>, #[rest] msg: String) -> Result<(), Error> {
     ctx.say(format!("Searching: **`{msg}`**")).await?;
 
     let http_client = get_http_client(ctx).await;
-    // prepare input
-    let (metadata, input) = if msg.starts_with("http") {
-        ytdl::play_url(&msg, http_client).await?
-    } else {
-        ytdl::search(&msg, http_client).await?
+
+    let Some(mut tracks_source) = SourceFactory::new(&msg, http_client).await else {
+        ctx.say("Error during fetching source").await?;
+
+        return Ok(());
     };
 
-    // pausing track so when added to queue it sends start playing event
-    let mut track = Track::from(input).pause();
+    while let Some(track) = tracks_source.next().await {
+        let Ok(TrackInfo { metadata, input }) = track else {
+            ctx.say("Error during fetching one of songs").await?;
+            continue;
+        };
 
-    let event_handler = TrackHandler::new(ctx, metadata.clone()).await;
-    let handler = call.lock().await.enqueue(track).await;
+        // pausing track so when added to queue it sends start playing event
+        let track = Track::from(input).pause();
 
-    // add handler that sends message when song starts playing
-    handler
-        .add_event(Event::Track(TrackEvent::Play), event_handler)
-        .unwrap();
+        let event_handler = TrackHandler::new(ctx, metadata.clone()).await;
+        let handler = call.lock().await.enqueue(track).await;
 
-    // send queue message if there is already playing song
-    let driver = call.lock().await;
-    if driver.queue().len() > 1 {
-        ctx.channel_id()
-            .send_message(
-                ctx.http(),
-                CreateMessage::new().embed(EmbedInfo::create_embed(
-                    metadata,
-                    "Added to queue",
-                    ctx.author().clone(),
-                )),
-            )
-            .await?;
+        // add handler that sends message when song starts playing
+        handler
+            .add_event(Event::Track(TrackEvent::Play), event_handler)
+            .unwrap();
+
+        // send queue message if there is already playing song
+        let driver = call.lock().await;
+        if driver.queue().len() > 1 {
+            ctx.channel_id()
+                .send_message(
+                    ctx.http(),
+                    CreateMessage::new().embed(EmbedInfo::create_embed(
+                        metadata,
+                        "Added to queue",
+                        ctx.author().clone(),
+                    )),
+                )
+                .await?;
+        }
     }
 
     Ok(())
