@@ -27,7 +27,7 @@ pub async fn seek(ctx: Context<'_>, secs: u64) -> Result<(), Error> {
 
     match result {
         Ok(time) => {
-            ctx.say(format!("Skipped to {}", time.as_secs())).await?;
+            ctx.say(format!("Skipped to {}s", time.as_secs())).await?;
         }
         Err(err) => {
             ctx.say("Skipped beyond the end of song").await?;

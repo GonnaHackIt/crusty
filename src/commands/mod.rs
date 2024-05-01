@@ -8,6 +8,7 @@ mod join;
 mod play;
 mod seek;
 mod skip;
+mod sources;
 
 pub use join::join;
 pub use play::play;
