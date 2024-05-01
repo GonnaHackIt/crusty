@@ -37,8 +37,8 @@ pub async fn play(ctx: Context<'_>, #[rest] msg: String) -> Result<(), Error> {
 
     let http_client = get_http_client(ctx).await;
 
-    let Some(mut tracks_source) = SourceFactory::new(&msg, http_client).await else {
-        ctx.say("Error during fetching source").await?;
+    let Ok(mut tracks_source) = SourceFactory::new(&msg, http_client).await else {
+        ctx.say("Error while creating source").await?;
 
         return Ok(());
     };

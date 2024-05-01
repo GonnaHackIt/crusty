@@ -10,11 +10,11 @@ type Result<T> = std::result::Result<T, SourceError>;
 pub struct SourceFactory;
 
 impl SourceFactory {
-    pub async fn new(query: &str, client: HttpClient) -> Option<Box<dyn TrackSource>> {
+    pub async fn new(query: &str, client: HttpClient) -> Result<Box<dyn TrackSource>> {
         // Default source is Youtube
-        let source = YoutubeSource::new(query, client).await.ok()?;
+        let source = YoutubeSource::new(query, client).await?;
 
-        return Some(Box::new(source));
+        Ok(Box::new(source))
     }
 }
 
