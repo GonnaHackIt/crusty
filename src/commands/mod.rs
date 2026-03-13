@@ -1,6 +1,6 @@
-use songbird::serenity::get as get_songbird;
+use crate::UserData;
 
-pub type Data = (); // User data, which is stored and accessible in all command invocations
+pub type Data = UserData; // User data, which is stored and accessible in all command invocations
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
 
@@ -8,7 +8,6 @@ mod join;
 mod play;
 mod seek;
 mod skip;
-mod sources;
 
 pub use join::join;
 pub use play::play;

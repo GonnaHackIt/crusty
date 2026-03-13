@@ -2,9 +2,7 @@ use super::*;
 
 // creating separate function for reusing
 pub async fn join_channel(ctx: Context<'_>) -> Result<(), Error> {
-    let songbird = get_songbird(ctx.serenity_context())
-        .await
-        .expect("Songbird not registered");
+    let songbird = ctx.data().songbird.clone();
 
     // try to get channel that user is connected to
     let channel_id = {

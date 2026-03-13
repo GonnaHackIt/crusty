@@ -8,9 +8,7 @@ pub async fn seek(ctx: Context<'_>, time: String) -> Result<(), Error> {
         return Ok(());
     };
 
-    let songbird = get_songbird(ctx.serenity_context())
-        .await
-        .expect("Songbird not registered");
+    let songbird = ctx.data().songbird.clone();
 
     let Some(call) = songbird.get(ctx.guild_id().unwrap()) else {
         ctx.say("Not in a channel").await?;
@@ -33,7 +31,7 @@ pub async fn seek(ctx: Context<'_>, time: String) -> Result<(), Error> {
         Ok(time) => {
             ctx.say(format!("Skipped to {}s", time.as_secs())).await?;
         }
-        Err(err) => {
+        Err(_err) => {
             ctx.say("Skipped beyond the end of song").await?;
 
             //println!("Error during seeking: {err:?}");

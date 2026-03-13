@@ -1,20 +1,30 @@
 mod commands;
-
 use commands::*;
-use poise::{serenity_prelude as serenity, Framework, PrefixFrameworkOptions};
-use reqwest::Client as HttpClient;
-use serenity::prelude::{Client, TypeMapKey};
-use songbird::SerenityInit;
-struct HttpKey;
 
-impl TypeMapKey for HttpKey {
-    type Value = HttpClient;
+use poise::{Framework, PrefixFrameworkOptions};
+use reqwest::Client as HttpClient;
+use serenity::prelude::*;
+use songbird::Songbird;
+use std::sync::Arc;
+
+const PREFIX: &str = ">";
+
+struct UserData {
+    pub songbird: Arc<Songbird>,
+    pub client: reqwest::Client,
 }
 
 #[tokio::main]
 async fn main() {
-    let framework = create_framework();
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .expect("Couldn't install crypto provider");
 
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
+
+    let framework = create_framework();
     let mut client = create_client(framework).await;
 
     client.start().await.unwrap();
@@ -22,11 +32,10 @@ async fn main() {
 
 fn create_framework() -> Framework<Data, Error> {
     poise::Framework::builder()
-        .setup(|_, _, _| Box::pin(async move { Ok(()) }))
         .options(poise::FrameworkOptions {
             commands: vec![join(), play(), skip(), seek()],
             prefix_options: PrefixFrameworkOptions {
-                prefix: Some(">".into()),
+                prefix: Some(PREFIX.into()),
                 case_insensitive_commands: true,
                 ..Default::default()
             },
@@ -36,14 +45,19 @@ fn create_framework() -> Framework<Data, Error> {
 }
 
 async fn create_client(framework: Framework<Data, Error>) -> Client {
-    let token = std::env::var("DISCORD_TOKEN").expect("missing token");
-    let intents =
-        serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
+    let token = Token::from_env("DISCORD_TOKEN").expect("Missing Discord Token!");
+    let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
 
-    serenity::ClientBuilder::new(token, intents)
-        .framework(framework)
-        .register_songbird()
-        .type_map_insert::<HttpKey>(HttpClient::new())
+    let songbird = Songbird::serenity();
+    let data = UserData {
+        songbird: Arc::clone(&songbird),
+        client: reqwest::Client::new(),
+    };
+
+    Client::builder(token, intents)
+        .framework(Box::new(framework))
+        .voice_manager(songbird)
+        .data(Arc::new(data))
         .await
         .expect("error creating client")
 }

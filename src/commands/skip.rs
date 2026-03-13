@@ -2,9 +2,7 @@ use super::*;
 
 #[poise::command(prefix_command, guild_only, aliases("fs", "s"))]
 pub async fn skip(ctx: Context<'_>) -> Result<(), Error> {
-    let songbird = get_songbird(ctx.serenity_context())
-        .await
-        .expect("Songbird not registered");
+    let songbird = ctx.data().songbird.clone();
 
     let Some(call) = songbird.get(ctx.guild_id().unwrap()) else {
         ctx.say("Not in a channel").await?;
