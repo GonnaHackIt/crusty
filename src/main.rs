@@ -2,8 +2,7 @@ mod commands;
 use commands::*;
 
 use poise::{Framework, PrefixFrameworkOptions};
-use reqwest::Client as HttpClient;
-use serenity::prelude::*;
+use serenity::{all::OnlineStatus, prelude::*};
 use songbird::Songbird;
 use std::sync::Arc;
 
@@ -58,6 +57,7 @@ async fn create_client(framework: Framework<Data, Error>) -> Client {
         .framework(Box::new(framework))
         .voice_manager(songbird)
         .data(Arc::new(data))
+        .status(OnlineStatus::Idle)
         .await
         .expect("error creating client")
 }
